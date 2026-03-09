@@ -1,0 +1,20 @@
+.wrapper {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.label { color: #4d7c6f; font-size: 10px; letter-spacing: 2px; margin-bottom: 10px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  background: rgba(0, 255, 135, 0.07);
+  border: 1px solid rgba(0, 255, 135, 0.15);
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 11px;
+  color: #a7f3d0;
+  font-family: 'DM Mono', monospace;
+  transition: background 0.2s, border-color 0.2s;
+}
+.chip:hover { background: rgba(0, 255, 135, 0.13); border-color: rgba(0, 255, 135, 0.35); }
+.chipKey { color: #4d7c6f; }
