@@ -1,56 +1,57 @@
 import { useState } from "react";
 import "./App.css";
 
-import Background    from "./assets/components/Background";
-import Header        from "./assets/components/Header";
-import Navbar        from "./assets/components/Navbar";
-import FormCard      from "./assets/components/FormCard";
-import ResultCard    from "./assets/components/ResultCard";
+import Background from "./assets/components/Background";
+import Header from "./assets/components/Header";
+import Navbar from "./assets/components/Navbar";
+import FormCard from "./assets/components/FormCard";
+import ResultCard from "./assets/components/ResultCard";
+import About from "./assets/components/About";       // 🆕
 
 const fields = [
-  { key:"pregnancies",   label:"Pregnancies",                icon:"🤰", min:0, max:20,  step:1,     unit:"times",  desc:"Number of times pregnant" },
-  { key:"glucose",       label:"Glucose",                    icon:"🩸", min:0, max:300, step:1,     unit:"mg/dL",  desc:"Plasma glucose concentration" },
-  { key:"bloodPressure", label:"Blood Pressure",             icon:"💓", min:0, max:200, step:1,     unit:"mmHg",   desc:"Diastolic blood pressure" },
-  { key:"skinThickness", label:"Skin Thickness",             icon:"🔬", min:0, max:100, step:1,     unit:"mm",     desc:"Triceps skin fold thickness" },
-  { key:"insulin",       label:"Insulin",                    icon:"💉", min:0, max:900, step:1,     unit:"μU/mL",  desc:"2-Hour serum insulin" },
-  { key:"bmi",           label:"BMI",                        icon:"⚖️", min:0, max:70,  step:0.1,   unit:"kg/m²",  desc:"Body mass index" },
-  { key:"dpf",           label:"Diabetes Pedigree Function", icon:"🧬", min:0, max:3,   step:0.001, unit:"score",  desc:"Genetic diabetes likelihood" },
-  { key:"age",           label:"Age",                        icon:"📅", min:1, max:120, step:1,     unit:"years",  desc:"Age in years" },
+  { key: "pregnancies", label: "Pregnancies", icon: "🤰", min: 0, max: 20, step: 1, unit: "times", desc: "Number of times pregnant" },
+  { key: "glucose", label: "Glucose", icon: "🩸", min: 0, max: 300, step: 1, unit: "mg/dL", desc: "Plasma glucose concentration" },
+  { key: "bloodPressure", label: "Blood Pressure", icon: "💓", min: 0, max: 200, step: 1, unit: "mmHg", desc: "Diastolic blood pressure" },
+  { key: "skinThickness", label: "Skin Thickness", icon: "🔬", min: 0, max: 100, step: 1, unit: "mm", desc: "Triceps skin fold thickness" },
+  { key: "insulin", label: "Insulin", icon: "💉", min: 0, max: 900, step: 1, unit: "μU/mL", desc: "2-Hour serum insulin" },
+  { key: "bmi", label: "BMI", icon: "⚖️", min: 0, max: 70, step: 0.1, unit: "kg/m²", desc: "Body mass index" },
+  { key: "dpf", label: "Diabetes Pedigree Function", icon: "🧬", min: 0, max: 3, step: 0.001, unit: "score", desc: "Genetic diabetes likelihood" },
+  { key: "age", label: "Age", icon: "📅", min: 1, max: 120, step: 1, unit: "years", desc: "Age in years" },
 ];
 
 const initialValues = {
-  pregnancies:"", glucose:"", bloodPressure:"", skinThickness:"",
-  insulin:"", bmi:"", dpf:"", age:""
+  pregnancies: "", glucose: "", bloodPressure: "", skinThickness: "",
+  insulin: "", bmi: "", dpf: "", age: ""
 };
 
 export default function App() {
-  const [values,   setValues]   = useState(initialValues);
-  const [step,     setStep]     = useState(0);
-  const [touched,  setTouched]  = useState({});
+  const [page, setPage] = useState("home");        // 🆕
+  const [values, setValues] = useState(initialValues);
+  const [step, setStep] = useState(0);
+  const [touched, setTouched] = useState({});
   const [submitted, setSubmitted] = useState(false);
-  const [loading,   setLoading]   = useState(false);
-  const [result,    setResult]    = useState(null);
-  const [error,     setError]     = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
 
   const handleChange = (key, val) => setValues(p => ({ ...p, [key]: val }));
 
   const handleNext = () => {
     const key = fields[step].key;
+    const num = parseFloat(values[key]);
+    const field = fields[step];
     setTouched(t => ({ ...t, [key]: true }));
-    if (values[key] === "") return;               // block if empty
-    if (step < fields.length - 1) {
-      setStep(s => s + 1);
-    } else {
-      setSubmitted(true);                          // all fields filled → show summary
-      submitData();
-    }
+    if (values[key] === "") return;
+    if (num < field.min || num > field.max) return;
+    if (step < fields.length - 1) { setStep(s => s + 1); return; }
+    setSubmitted(true);
+    submitData();
   };
 
   const submitData = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Map frontend keys to backend expected keys
       const backendData = {
         Pregnancies: Number(values.pregnancies),
         Glucose: Number(values.glucose),
@@ -60,7 +61,7 @@ export default function App() {
         Age: Number(values.age)
       };
 
-      const resp = await fetch("http://localhost:8000/api/predict/", {
+      const resp = await fetch("http://127.0.0.1:8000/api/predict/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(backendData)
@@ -95,38 +96,46 @@ export default function App() {
       minHeight: "100vh",
       display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
-      padding: "24px", paddingTop: "80px"
+      padding: "24px", paddingTop: "90px"
     }}>
       <Background />
-      <Navbar />
+      <Navbar page={page} onNavigate={setPage} />   {/* 🆕 pass props */}
 
-      <div style={{ position:"relative", zIndex:1, width:"100%", maxWidth:"560px" }}>
-        <Header />
+      <div style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: page === "about" ? "720px" : "560px" }}>
 
-        {submitted
-          ? <ResultCard 
-              values={values} 
-              fields={fields} 
-              onReset={reset} 
-              result={result} 
-              loading={loading} 
-              error={error} 
-            />
-          : <FormCard
-              fields={fields}
-              values={values}
-              step={step}
-              touched={touched}
-              onNext={handleNext}
-              onBack={() => setStep(s => s - 1)}
-              onStepClick={setStep}
-              onChange={handleChange}
-            />
-        }
+        {/* ── About page ── */}
+        {page === "about" && <About />}
 
-        <p style={{ textAlign:"center", marginTop:"24px", color:"#1f4038", fontSize:"11px", letterSpacing:"1px" }}>
-          DIABETES RISK ASSESSMENT v1.0 • CLINICAL AI
-        </p>
+        {/* ── Home / Assessment page ── */}
+        {page === "home" && (
+          <>
+            <Header />
+            {submitted
+              ? <ResultCard
+                values={values}
+                fields={fields}
+                onReset={reset}
+                result={result}
+                loading={loading}
+                error={error}
+              />
+              : <FormCard
+                fields={fields}
+                values={values}
+                step={step}
+                touched={touched}
+                onNext={handleNext}
+                onBack={() => setStep(s => s - 1)}
+                onStepClick={setStep}
+                onChange={handleChange}
+              />
+            }
+            <p style={{ textAlign: "center", marginTop: "24px", color: "#1f4038", fontSize: "11px", letterSpacing: "1px" }}>
+              DIABETES RISK ASSESSMENT v1.0 • CLINICAL AI
+            </p>
+          </>
+        )}
+
       </div>
     </div>
   );
