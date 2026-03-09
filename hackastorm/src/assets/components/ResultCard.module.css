@@ -125,3 +125,24 @@
   background: rgba(0,255,135,0.08);
   border-color: rgba(0,255,135,0.4);
 }
+
+.warningBanner {
+  display: flex;
+  gap: 16px;
+  background: rgba(255, 107, 107, 0.1);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spinIcon {
+  font-size: 24px;
+  animation: spin 2s linear infinite;
+  display: inline-block;
+}

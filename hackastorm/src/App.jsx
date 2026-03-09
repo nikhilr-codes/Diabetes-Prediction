@@ -28,6 +28,9 @@ export default function App() {
   const [step,     setStep]     = useState(0);
   const [touched,  setTouched]  = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [loading,   setLoading]   = useState(false);
+  const [result,    setResult]    = useState(null);
+  const [error,     setError]     = useState(null);
 
   const handleChange = (key, val) => setValues(p => ({ ...p, [key]: val }));
 
@@ -39,6 +42,42 @@ export default function App() {
       setStep(s => s + 1);
     } else {
       setSubmitted(true);                          // all fields filled → show summary
+      submitData();
+    }
+  };
+
+  const submitData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Map frontend keys to backend expected keys
+      const backendData = {
+        Pregnancies: Number(values.pregnancies),
+        Glucose: Number(values.glucose),
+        Insulin: Number(values.insulin),
+        BMI: Number(values.bmi),
+        DiabetesPedigreeFunction: Number(values.dpf),
+        Age: Number(values.age)
+      };
+
+      const resp = await fetch("http://localhost:8000/api/predict/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(backendData)
+      });
+
+      if (!resp.ok) {
+        const errJson = await resp.json();
+        throw new Error(errJson.error || "Prediction failed");
+      }
+
+      const data = await resp.json();
+      setResult(data);
+    } catch (err) {
+      console.error(err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -47,6 +86,8 @@ export default function App() {
     setStep(0);
     setTouched({});
     setSubmitted(false);
+    setResult(null);
+    setError(null);
   };
 
   return (
@@ -63,7 +104,14 @@ export default function App() {
         <Header />
 
         {submitted
-          ? <ResultCard values={values} fields={fields} onReset={reset} />
+          ? <ResultCard 
+              values={values} 
+              fields={fields} 
+              onReset={reset} 
+              result={result} 
+              loading={loading} 
+              error={error} 
+            />
           : <FormCard
               fields={fields}
               values={values}
